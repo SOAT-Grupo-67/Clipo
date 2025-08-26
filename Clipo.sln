@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36203.30 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Domain", "Clipo\Clipo.Domain\Clipo.Domain.csproj", "{F64F1F09-399C-41B7-BFFC-0E27FC30A820}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Application", "Clipo\Clipo.Application\Clipo.Application.csproj", "{2353652C-8466-428B-AC28-E11A1D682290}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Infrastructure", "Clipo\Clipo.Infrastructure\Clipo.Infrastructure.csproj", "{D9FC6945-1E17-49BD-9B10-2BE25AB6396C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Presentation", "Clipo\Clipo.Presentation\Clipo.Presentation.csproj", "{AC7A58E3-A290-4338-B414-BC46388961E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Api", "Clipo\Clipo.Api\Clipo.Api.csproj", "{4418755E-A33A-4293-9DB3-BDBD23BD8117}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F64F1F09-399C-41B7-BFFC-0E27FC30A820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F64F1F09-399C-41B7-BFFC-0E27FC30A820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F64F1F09-399C-41B7-BFFC-0E27FC30A820}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F64F1F09-399C-41B7-BFFC-0E27FC30A820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2353652C-8466-428B-AC28-E11A1D682290}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2353652C-8466-428B-AC28-E11A1D682290}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2353652C-8466-428B-AC28-E11A1D682290}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2353652C-8466-428B-AC28-E11A1D682290}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9FC6945-1E17-49BD-9B10-2BE25AB6396C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9FC6945-1E17-49BD-9B10-2BE25AB6396C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9FC6945-1E17-49BD-9B10-2BE25AB6396C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9FC6945-1E17-49BD-9B10-2BE25AB6396C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC7A58E3-A290-4338-B414-BC46388961E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC7A58E3-A290-4338-B414-BC46388961E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC7A58E3-A290-4338-B414-BC46388961E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC7A58E3-A290-4338-B414-BC46388961E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {95015687-1B2E-4C40-A9E8-98D8C4FC9FAB}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Clipo.Domain</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="DTO\" />
+	
+    <Folder Include="AggregatesModel\Base\" />
+	<Compile Include="AggregatesModel\Base\BaseModel.cs" />
+	<Compile Include="AggregatesModel\Base\Pagination.cs" />
+	<Compile Include="AggregatesModel\VideoAggregate\Enums\ProcessStatus.cs" />
+	<Compile Include="AggregatesModel\VideoAggregate\Interface\IVideoStatusRepository.cs" />
+	<Compile Include="AggregatesModel\VideoAggregate\VideoStatus.cs" />
+
+    <Folder Include="AggregatesModel\Base\Interface\" />
+	<Compile Include="AggregatesModel\Base\Interface\IRepositoryBase.cs" />
+	
+    <Folder Include="Enums\" />
+	<Compile Include="Enums\Status.cs" />
+
+    <Folder Include="Extensions\" />
+	<Compile Include="Extensions\EnumExtensions.cs" />
+	<Compile Include="Extensions\JsonExtensions.cs" />
+  </ItemGroup>
+
+</Project>

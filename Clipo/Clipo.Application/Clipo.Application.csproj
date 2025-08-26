@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Clipo.Application</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Mapping\" />
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="FFMpegCore" Version="5.2.0" />
+    <PackageReference Include="Hangfire" Version="1.8.21" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.21" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.6" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Clipo.Domain\Clipo.Domain.csproj" />
+    <ProjectReference Include="..\Clipo.Infrastructure\Clipo.Infrastructure.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+  </ItemGroup>
+  
+</Project>
