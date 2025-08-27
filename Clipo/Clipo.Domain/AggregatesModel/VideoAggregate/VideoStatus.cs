@@ -8,7 +8,7 @@ namespace Clipo.Domain.AggregatesModel.VideoAggregate
         public string FileName { get; set; } = default!;
         public string FilePath { get; set; } = default!;
         public string? ZipPath { get; set; }
-        public ProcessStatus Status { get; set; } = ProcessStatus.Queued;
+        public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Queued;
         public int Progress { get; set; } = 0;
     }
 }

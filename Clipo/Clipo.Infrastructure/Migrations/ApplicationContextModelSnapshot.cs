@@ -44,6 +44,9 @@ namespace Clipo.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ProcessStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Progress")
                         .HasColumnType("integer");
 
