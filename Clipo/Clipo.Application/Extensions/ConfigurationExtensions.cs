@@ -1,6 +1,10 @@
 ﻿using System.Reflection;
+using Amazon.S3;
+using Clipo.Application.Services.S3Storage;
 using Clipo.Application.Services.VideoConverter;
 using Clipo.Application.UseCases.ConvertVideoToFrame;
+using Clipo.Application.UseCases.GetVideosByUser;
+using Clipo.Application.UseCases.GetVideoStatus;
 using Clipo.Domain.AggregatesModel.Base.Interface;
 using Clipo.Domain.AggregatesModel.VideoAggregate.Interface;
 using Clipo.Infrastructure.Data;
@@ -20,10 +24,11 @@ namespace Clipo.Application.Extensions
         {
             IConfigurationSection dbSection = cfg.GetSection("Database");
             string host = dbSection["Host"] ?? "localhost";
-            string port = dbSection["Port"] ?? "5432";
+            string port = dbSection["Port"] ?? "5433";
             string user = dbSection["User"] ?? "postgres";
             string password = dbSection["Password"] ?? "postgres";
             string dbName = dbSection["Name"] ?? "postgres";
+            bool autoCreate = dbSection.GetValue<bool>("AutoCreate", false);
 
             string connectionString =
                 $"Host={host};Port={port};Database={dbName};Username={user};Password={password}";
@@ -32,18 +37,31 @@ namespace Clipo.Application.Extensions
                 options.UseNpgsql(connectionString, npgsql =>
                 {
                     npgsql.EnableRetryOnFailure(maxRetryCount: 5);
-                    npgsql.MigrationsHistoryTable("__ef_migrations");
+                    if (!autoCreate)
+                    {
+                        npgsql.MigrationsHistoryTable("__ef_migrations");
+                    }
                 }));
 
             using(ServiceProvider serviceProvider = services.BuildServiceProvider())
             using(IServiceScope scope = serviceProvider.CreateScope())
             {
                 ApplicationContext context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-                context.Database.Migrate();
+                
+                if (autoCreate)
+                {
+                    context.Database.EnsureCreated();
+                }
+                else
+                {
+                    context.Database.Migrate();
+                }
             }
 
             return services;
         }
+
+
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
             string conn = cfg.GetConnectionString("HangfireConnection")
@@ -127,6 +145,58 @@ namespace Clipo.Application.Extensions
             return services;
         }
 
+        public static IServiceCollection AddAwsServices(this IServiceCollection services, IConfiguration cfg)
+        {
+            try
+            {
+                var awsSection = cfg.GetSection("AWS");
+                var accessKeyId = awsSection["AccessKeyId"];
+                var secretAccessKey = awsSection["SecretAccessKey"];
+                var sessionToken = awsSection["SessionToken"];
+                var region = awsSection["Region"] ?? "us-east-1";
+
+                if (!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
+                {
+                    Amazon.Runtime.AWSCredentials awsCredentials;
+                    
+                    if (!string.IsNullOrEmpty(sessionToken))
+                    {
+                        awsCredentials = new Amazon.Runtime.SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
+                    }
+                    else
+                    {
+                        awsCredentials = new Amazon.Runtime.BasicAWSCredentials(accessKeyId, secretAccessKey);
+                    }
+                    
+                    var s3Config = new AmazonS3Config
+                    {
+                        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
+                    };
+
+                    services.AddSingleton<IAmazonS3>(provider => new AmazonS3Client(awsCredentials, s3Config));
+                }
+                else
+                {
+                    var s3Config = new AmazonS3Config
+                    {
+                        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
+                    };
+                    services.AddSingleton<IAmazonS3>(provider => new AmazonS3Client(s3Config));
+                }
+
+                services.AddScoped<IS3StorageService, S3StorageService>();
+            }
+            catch (Exception ex)
+            {
+                
+                Console.WriteLine($"Erro ao configurar AWS S3: {ex.Message}");
+                
+                services.AddScoped<IS3StorageService, S3StorageService>();
+            }
+
+            return services;
+        }
+
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration cfg)
         {
             services
@@ -134,6 +204,7 @@ namespace Clipo.Application.Extensions
                 .AddRepositories()
                 .AddMapping()
                 .AddRefitClients(cfg)
+                .AddAwsServices(cfg)
                 .AddVideoConverterUseCases()
                 .AddSwaggerDocs(cfg)
                 .AddHangfireServices(cfg);
@@ -145,6 +216,8 @@ namespace Clipo.Application.Extensions
         public static IServiceCollection AddVideoConverterUseCases(this IServiceCollection s)
         {
             s.AddScoped<IConvertVideoToFrameInputPort, ConvertVideoToFrameInteractor>();
+            s.AddScoped<IGetVideosByUserInputPort, GetVideosByUserInteractor>();
+            s.AddScoped<IGetVideoStatusInputPort, GetVideoStatusInteractor>();
             return s;
         }
         internal sealed record SwaggerOptions
