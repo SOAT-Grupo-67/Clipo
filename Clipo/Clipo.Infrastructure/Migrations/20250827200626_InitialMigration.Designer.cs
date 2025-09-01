@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Clipo.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20250825212452_InitialMigration")]
+    [Migration("20250827200626_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -46,6 +46,9 @@ namespace Clipo.Infrastructure.Migrations
                     b.Property<string>("FilePath")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("ProcessStatus")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Progress")
                         .HasColumnType("integer");
