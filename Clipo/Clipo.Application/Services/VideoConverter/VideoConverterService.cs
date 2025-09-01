@@ -1,5 +1,7 @@
-﻿using Clipo.Domain.AggregatesModel.VideoAggregate.Interface;
+﻿using Clipo.Application.Services.S3Storage;
+using Clipo.Domain.AggregatesModel.VideoAggregate.Interface;
 using FFMpegCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg.Downloader;
 
@@ -8,15 +10,23 @@ namespace Clipo.Application.Services.VideoConverter
     public class VideoConverterService
     {
         private readonly IVideoStatusRepository _videoRepository;
+        private readonly IS3StorageService _s3StorageService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<VideoConverterService> _logger;
 
-        public VideoConverterService(IVideoStatusRepository videoRepository, ILogger<VideoConverterService> logger)
+        public VideoConverterService(
+            IVideoStatusRepository videoRepository, 
+            IS3StorageService s3StorageService,
+            IConfiguration configuration,
+            ILogger<VideoConverterService> logger)
         {
             _videoRepository = videoRepository;
+            _s3StorageService = s3StorageService;
+            _configuration = configuration;
             _logger = logger;
         }
 
-        public async Task ProcessAsync(long jobId, CancellationToken ct)
+        public async Task ProcessAsync(long jobId, CancellationToken ct = default)
         {
             Domain.AggregatesModel.VideoAggregate.VideoStatus? video = await _videoRepository.GetByIdAsync(jobId, ct);
             if(video is null) return;
@@ -62,12 +72,29 @@ namespace Clipo.Application.Services.VideoConverter
                     await _videoRepository.UpdateAsync(video, ct);
                 }
 
-                // zipa frames
                 string zipFilePath = Path.Combine("frames", $"{video.Id}.zip");
                 if(File.Exists(zipFilePath)) File.Delete(zipFilePath);
                 System.IO.Compression.ZipFile.CreateFromDirectory(framesDir, zipFilePath);
 
+                bool uploadEnabled = _configuration.GetValue<bool>("AWS:UploadEnabled", false);
+                if (uploadEnabled)
+                {
+                    try
+                    {
+                        string s3FileName = $"frames/{video.Id}/{Path.GetFileName(zipFilePath)}";
+                        string s3Url = await _s3StorageService.UploadFileAsync(zipFilePath, s3FileName, ct);
+                        video.S3Url = s3Url;
+                        _logger.LogInformation("Arquivo ZIP enviado para S3: {S3Url}", s3Url);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Erro ao fazer upload para S3 do job {JobId}", video.Id);
+                    }
+                }
+
+                video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
                 video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
+
                 video.ZipPath = zipFilePath;
                 video.Progress = 100;
                 await _videoRepository.UpdateAsync(video, ct);

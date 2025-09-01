@@ -19,10 +19,6 @@ namespace Clipo.Infrastructure.Data
 
             modelBuilder.HasDefaultSchema("videoStatus");
 
-            modelBuilder.HasSequence<long>("global_id_seq")
-                        .StartsAt(1)
-                        .IncrementsBy(10);
-
             foreach(Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entity in modelBuilder.Model.GetEntityTypes())
             {
                 string tableName = ToKebabCase(entity.ClrType.Name);
@@ -32,7 +28,9 @@ namespace Clipo.Infrastructure.Data
                 if(idProp != null &&
                     (idProp.ClrType == typeof(int) || idProp.ClrType == typeof(long)))
                 {
-                    idProp.SetDefaultValueSql("nextval('customer.global_id_seq')");
+                    modelBuilder.Entity(entity.ClrType)
+                        .Property("Id")
+                        .ValueGeneratedOnAdd();
                 }
             }
         }
