@@ -5,5 +5,5 @@ namespace Clipo.Application.UseCases.ConvertVideoToFrame
 {
     public sealed record ConvertVideoToFrameInput(
         [property: Required(ErrorMessage = "O arquivo de vídeo é obrigatório.")]
-        IFormFile File);
+        IFormFile File, [Required(ErrorMessage = "ID do Usuario é obrigatório.")] Guid UserId);
 }

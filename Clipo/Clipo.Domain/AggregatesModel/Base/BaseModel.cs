@@ -11,7 +11,7 @@ namespace Clipo.Domain.AggregatesModel.Base
 
         public BaseModel()
         {
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
             Status = Status.Active;
         }
     }
