@@ -52,6 +52,7 @@ namespace Clipo.Application.UseCases.ConvertVideoToFrame
                     FileName = input.File.FileName,
                     FilePath = filePath,
                     Progress = 0,
+                    UserId = input.UserId
                 };
 
                 await _videoRepository.AddAsync(job, cancellationToken);
@@ -63,7 +64,8 @@ namespace Clipo.Application.UseCases.ConvertVideoToFrame
                 _output.Ok(new ConvertVideoToFrameOutput(
                     job.Id,
                     job.Status.GetDescription(),
-                    job.CreatedAt
+                    job.CreatedAt,
+                    job.S3Url
                 ));
             }
             catch(Exception ex)
