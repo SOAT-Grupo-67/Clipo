@@ -3,6 +3,7 @@ using Clipo.Domain.AggregatesModel.VideoAggregate.Interface;
 using FFMpegCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Xabe.FFmpeg.Downloader;
 
 namespace Clipo.Application.Services.VideoConverter
 {
@@ -32,11 +33,21 @@ namespace Clipo.Application.Services.VideoConverter
 
             try
             {
-                video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Processing;
+                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Processing;
                 video.Progress = 0;
                 await _videoRepository.UpdateAsync(video, ct);
 
+                string binFolder = Path.Combine(AppContext.BaseDirectory, "ffmpeg");
+                await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, binFolder);
+
+                GlobalFFOptions.Configure(new FFOptions
+                {
+                    BinaryFolder = binFolder,
+                    TemporaryFilesFolder = Path.Combine(Path.GetTempPath(), "FFmpegTemp")
+                });
+
                 IMediaAnalysis analysis = await FFProbe.AnalyseAsync(video.FilePath);
+
                 double duration = analysis.Duration.TotalSeconds;
 
                 int fps = 1;
@@ -82,6 +93,8 @@ namespace Clipo.Application.Services.VideoConverter
                 }
 
                 video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
+                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
+
                 video.ZipPath = zipFilePath;
                 video.Progress = 100;
                 await _videoRepository.UpdateAsync(video, ct);
@@ -90,7 +103,7 @@ namespace Clipo.Application.Services.VideoConverter
             }
             catch(Exception ex)
             {
-                video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Error;
+                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Error;
                 video.Progress = 0;
                 await _videoRepository.UpdateAsync(video, ct);
 

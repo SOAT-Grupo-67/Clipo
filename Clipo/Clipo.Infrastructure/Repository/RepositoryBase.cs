@@ -25,15 +25,17 @@ namespace Clipo.Infrastructure.Repository
             try
             {
                 _logger.LogInformation("Fetching {Entity} with id {Id}", typeof(T).Name, id);
-                return await _set.AsNoTracking()
-                                 .FirstOrDefaultAsync(e => e.Id == id && e.Status != 0, ct);
+                T? entity = await _set.AsNoTracking()
+                                 .FirstOrDefaultAsync(e => e.Id == id && e.Status != Domain.Enums.Status.Inactive, ct);
+
+                return entity;
             }
-            catch (NpgsqlException ex)
+            catch(NpgsqlException ex)
             {
                 _logger.LogError(ex, "PostgreSQL error while fetching id {Id}", id);
                 throw;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex, "Unknown error while fetching id {Id}", id);
                 throw;
@@ -61,12 +63,12 @@ namespace Clipo.Infrastructure.Repository
 
                 return new PaginatedResult<T>(items, total, p.PageNumber, p.PageSize);
             }
-            catch (NpgsqlException ex)
+            catch(NpgsqlException ex)
             {
                 _logger.LogError(ex, "PostgreSQL error while listing entities");
                 throw;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex, "Unknown error while listing entities");
                 throw;
@@ -84,12 +86,12 @@ namespace Clipo.Infrastructure.Repository
 
                 return entity;
             }
-            catch (NpgsqlException ex)
+            catch(NpgsqlException ex)
             {
                 _logger.LogError(ex, "PostgreSQL error while adding a new entity");
                 throw;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex, "Unknown error while adding a new entity");
                 throw;
@@ -103,7 +105,7 @@ namespace Clipo.Infrastructure.Repository
                 _logger.LogInformation("Updating {Entity} with id {Id}", typeof(T).Name, entity.Id);
 
                 T? tracked = await _set.FirstOrDefaultAsync(e => e.Id == entity.Id && e.Status != 0, ct);
-                if (tracked is null)
+                if(tracked is null)
                 {
                     _logger.LogWarning("Entity id {Id} not found for update", entity.Id);
                     return null;
@@ -115,12 +117,12 @@ namespace Clipo.Infrastructure.Repository
                 await _ctx.SaveChangesAsync(ct);
                 return tracked;
             }
-            catch (NpgsqlException ex)
+            catch(NpgsqlException ex)
             {
                 _logger.LogError(ex, "PostgreSQL error while updating id {Id}", entity.Id);
                 throw;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex, "Unknown error while updating id {Id}", entity.Id);
                 throw;
@@ -135,7 +137,7 @@ namespace Clipo.Infrastructure.Repository
                     "Logical delete of {Entity} with id {Id}", typeof(T).Name, id);
 
                 T? entity = await _set.FirstOrDefaultAsync(e => e.Id == id && e.Status != 0, ct);
-                if (entity is null)
+                if(entity is null)
                 {
                     _logger.LogWarning("Entity id {Id} not found for delete", id);
                     return false;
@@ -147,12 +149,12 @@ namespace Clipo.Infrastructure.Repository
                 await _ctx.SaveChangesAsync(ct);
                 return true;
             }
-            catch (NpgsqlException ex)
+            catch(NpgsqlException ex)
             {
                 _logger.LogError(ex, "PostgreSQL error while deleting id {Id}", id);
                 throw;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex, "Unknown error while deleting id {Id}", id);
                 throw;
