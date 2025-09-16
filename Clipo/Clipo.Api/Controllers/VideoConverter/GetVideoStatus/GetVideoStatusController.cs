@@ -1,5 +1,4 @@
 using Clipo.Application.UseCases.GetVideoStatus;
-using Clipo.Presentation.Controller.VideoConverter;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clipo.Api.Controllers.VideoConverter.GetVideoStatus
@@ -35,25 +34,25 @@ namespace Clipo.Api.Controllers.VideoConverter.GetVideoStatus
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetVideoStatusAsync(long id, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if(!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
                 GetVideoStatusInput input = new(id);
-                var result = await _useCase.ExecuteAsync(input, ct);
+                GetVideoStatusOutput? result = await _useCase.ExecuteAsync(input, ct);
 
-                if (result == null)
+                if(result == null)
                 {
                     return NotFound(new { Message = "Vídeo não encontrado." });
                 }
 
                 return Ok(result);
             }
-            catch (InvalidOperationException ex)
+            catch(InvalidOperationException ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
-            catch (Exception ex)
+            catch(Exception)
             {
                 return StatusCode(500, new { Message = "Erro interno do servidor." });
             }

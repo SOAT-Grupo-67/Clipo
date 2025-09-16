@@ -1,6 +1,8 @@
-﻿using Clipo.Application.Services.S3Storage;
+﻿using Clipo.Application.Services.EmailSender;
+using Clipo.Application.Services.S3Storage;
 using Clipo.Domain.AggregatesModel.VideoAggregate.Interface;
 using FFMpegCore;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg.Downloader;
@@ -13,16 +15,21 @@ namespace Clipo.Application.Services.VideoConverter
         private readonly IS3StorageService _s3StorageService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<VideoConverterService> _logger;
-
+        private readonly IEmailSenderService _emailService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         public VideoConverterService(
-            IVideoStatusRepository videoRepository, 
+            IVideoStatusRepository videoRepository,
             IS3StorageService s3StorageService,
             IConfiguration configuration,
+            IEmailSenderService emailService,
+            IHttpContextAccessor httpContextAccessor,
             ILogger<VideoConverterService> logger)
         {
             _videoRepository = videoRepository;
             _s3StorageService = s3StorageService;
             _configuration = configuration;
+            _emailService = emailService;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
@@ -33,7 +40,7 @@ namespace Clipo.Application.Services.VideoConverter
 
             try
             {
-                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Processing;
+                video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Processing;
                 video.Progress = 0;
                 await _videoRepository.UpdateAsync(video, ct);
 
@@ -77,7 +84,7 @@ namespace Clipo.Application.Services.VideoConverter
                 System.IO.Compression.ZipFile.CreateFromDirectory(framesDir, zipFilePath);
 
                 bool uploadEnabled = _configuration.GetValue<bool>("AWS:UploadEnabled", false);
-                if (uploadEnabled)
+                if(uploadEnabled)
                 {
                     try
                     {
@@ -86,14 +93,13 @@ namespace Clipo.Application.Services.VideoConverter
                         video.S3Url = s3Url;
                         _logger.LogInformation("Arquivo ZIP enviado para S3: {S3Url}", s3Url);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         _logger.LogError(ex, "Erro ao fazer upload para S3 do job {JobId}", video.Id);
                     }
                 }
 
                 video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
-                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Done;
 
                 video.ZipPath = zipFilePath;
                 video.Progress = 100;
@@ -103,11 +109,27 @@ namespace Clipo.Application.Services.VideoConverter
             }
             catch(Exception ex)
             {
-                video.ProcessStatus = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Error;
+                video.Status = Domain.AggregatesModel.VideoAggregate.Enums.ProcessStatus.Error;
                 video.Progress = 0;
                 await _videoRepository.UpdateAsync(video, ct);
 
-                _logger.LogError(ex, "Erro ao processar vídeo {JobId}", video.Id);
+                _logger.LogError(ex, "Error while processing video {JobId}", video.Id);
+
+                string? email = _httpContextAccessor.HttpContext?.User?.FindFirst("email")?.Value;
+
+                if(!string.IsNullOrEmpty(email))
+                {
+                    await _emailService.SendEmailAsync(
+                        recipient: email,
+                        subject: "Video Processing Failed",
+                        body: $"Your video job {video.Id} failed with error: {ex.Message}",
+                        ct: ct
+                    );
+                }
+                else
+                {
+                    _logger.LogWarning("No email claim found in token for job {JobId}", video.Id);
+                }
             }
         }
     }

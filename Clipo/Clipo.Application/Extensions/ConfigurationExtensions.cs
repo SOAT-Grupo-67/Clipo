@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
+using System.Text;
 using Amazon.S3;
+using Clipo.Application.Services.EmailSender;
 using Clipo.Application.Services.S3Storage;
 using Clipo.Application.Services.VideoConverter;
 using Clipo.Application.UseCases.ConvertVideoToFrame;
@@ -11,9 +13,11 @@ using Clipo.Infrastructure.Data;
 using Clipo.Infrastructure.Repository;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Clipo.Application.Extensions
@@ -37,7 +41,7 @@ namespace Clipo.Application.Extensions
                 options.UseNpgsql(connectionString, npgsql =>
                 {
                     npgsql.EnableRetryOnFailure(maxRetryCount: 5);
-                    if (!autoCreate)
+                    if(!autoCreate)
                     {
                         npgsql.MigrationsHistoryTable("__ef_migrations");
                     }
@@ -47,8 +51,8 @@ namespace Clipo.Application.Extensions
             using(IServiceScope scope = serviceProvider.CreateScope())
             {
                 ApplicationContext context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-                
-                if (autoCreate)
+
+                if(autoCreate)
                 {
                     context.Database.EnsureCreated();
                 }
@@ -60,7 +64,30 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+        public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration cfg)
+        {
+            IConfigurationSection authSection = cfg.GetSection("Auth");
 
+            string secret = authSection["Secret"] ?? throw new InvalidOperationException("Auth:Secret não configurado!");
+
+            services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+                    };
+                });
+
+            services.AddAuthorization();
+
+            return services;
+        }
 
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
@@ -100,6 +127,31 @@ namespace Clipo.Application.Extensions
                     Description = "Documentação da API Clipo gerada automaticamente"
                 });
 
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter: **Bearer {your JWT token}**"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+
                 string basePath = AppContext.BaseDirectory;
                 IEnumerable<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies()
                     .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
@@ -112,7 +164,6 @@ namespace Clipo.Application.Extensions
                     if(File.Exists(xmlPath))
                         options.IncludeXmlComments(xmlPath);
                 }
-
             });
 
             services.Configure<SwaggerOptions>(opt =>
@@ -124,7 +175,6 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
-
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
@@ -149,17 +199,17 @@ namespace Clipo.Application.Extensions
         {
             try
             {
-                var awsSection = cfg.GetSection("AWS");
-                var accessKeyId = awsSection["AccessKeyId"];
-                var secretAccessKey = awsSection["SecretAccessKey"];
-                var sessionToken = awsSection["SessionToken"];
-                var region = awsSection["Region"] ?? "us-east-1";
+                IConfigurationSection awsSection = cfg.GetSection("AWS");
+                string? accessKeyId = awsSection["AccessKeyId"];
+                string? secretAccessKey = awsSection["SecretAccessKey"];
+                string? sessionToken = awsSection["SessionToken"];
+                string region = awsSection["Region"] ?? "us-east-1";
 
-                if (!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
+                if(!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
                 {
                     Amazon.Runtime.AWSCredentials awsCredentials;
-                    
-                    if (!string.IsNullOrEmpty(sessionToken))
+
+                    if(!string.IsNullOrEmpty(sessionToken))
                     {
                         awsCredentials = new Amazon.Runtime.SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
                     }
@@ -167,8 +217,8 @@ namespace Clipo.Application.Extensions
                     {
                         awsCredentials = new Amazon.Runtime.BasicAWSCredentials(accessKeyId, secretAccessKey);
                     }
-                    
-                    var s3Config = new AmazonS3Config
+
+                    AmazonS3Config s3Config = new AmazonS3Config
                     {
                         RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
                     };
@@ -177,7 +227,7 @@ namespace Clipo.Application.Extensions
                 }
                 else
                 {
-                    var s3Config = new AmazonS3Config
+                    AmazonS3Config s3Config = new AmazonS3Config
                     {
                         RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
                     };
@@ -186,11 +236,11 @@ namespace Clipo.Application.Extensions
 
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                
+
                 Console.WriteLine($"Erro ao configurar AWS S3: {ex.Message}");
-                
+
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
 
@@ -207,9 +257,11 @@ namespace Clipo.Application.Extensions
                 .AddAwsServices(cfg)
                 .AddVideoConverterUseCases()
                 .AddSwaggerDocs(cfg)
+                .AddAuthenticationServices(cfg)
                 .AddHangfireServices(cfg);
 
             services.AddScoped<VideoConverterService>();
+            services.AddScoped<IEmailSenderService, EmailSenderService>();
 
             return services;
         }

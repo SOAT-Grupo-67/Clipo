@@ -7,6 +7,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddVideoConverterPresentation();
+builder.Services.AddHttpContextAccessor();
+
 
 WebApplication app = builder.Build();
 

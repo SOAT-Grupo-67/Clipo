@@ -1,5 +1,6 @@
 ﻿using Clipo.Application.UseCases.ConvertVideoToFrame;
 using Clipo.Presentation.Controller.VideoConverter;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clipo.Api.Controllers.VideoConverter.ConvertVideoToFrame
@@ -24,10 +25,11 @@ namespace Clipo.Api.Controllers.VideoConverter.ConvertVideoToFrame
         /// - <b>400 Bad Request</b>: Dados inválidos ou erro de negócio.
         /// - <b>500 Internal Server Error</b>: Falha inesperada no servidor.
         /// </remarks>
-        /// <param name="body">Dados necessários para criação da conversão (<c>ConvertVideoToFrameInput</c>).</param>
+        /// <param name="file">Dados necessários para criação da conversão (<c>ConvertVideoToFrameInput</c>).</param>
         /// <param name="ct">Token de cancelamento para a operação assíncrona.</param>
         /// <returns>Um resultado contendo o job criado ou informações de erro.</returns>
         [HttpPost("create")]
+        [Authorize]
         [ProducesResponseType(typeof(ConvertVideoToFrameOutput), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
