@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTO\" />
 	
     <Folder Include="AggregatesModel\Base\" />
 	<Compile Include="AggregatesModel\Base\BaseModel.cs" />
@@ -17,6 +16,7 @@
 	<Compile Include="AggregatesModel\VideoAggregate\Enums\ProcessStatus.cs" />
 	<Compile Include="AggregatesModel\VideoAggregate\Interface\IVideoStatusRepository.cs" />
 	<Compile Include="AggregatesModel\VideoAggregate\VideoStatus.cs" />
+	<Compile Include="Service\EmailSender\EmailMessage.cs" />
 
     <Folder Include="AggregatesModel\Base\Interface\" />
 	<Compile Include="AggregatesModel\Base\Interface\IRepositoryBase.cs" />

@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clipo-api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+
+      Database__Host: "db"
+      Database__Port: "5432"
+      Database__User: "${POSTGRES_USER}"
+      Database__Password: "${POSTGRES_PASSWORD}"
+      Database__Name: "${POSTGRES_DB}"
+    ports:
+      - "8080:8080"
+    networks:
+      - clipo-network
+
+    user: "1000:1000"
+
+  db:
+    image: postgres:16-alpine
+    container_name: clipo-postgres
+    restart: always
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       ${POSTGRES_DB}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - clipo-network
+
+volumes:
+  db-data:
+
+networks:
+  clipo-network:
