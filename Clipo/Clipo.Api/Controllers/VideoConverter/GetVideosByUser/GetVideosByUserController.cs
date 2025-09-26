@@ -1,10 +1,11 @@
 using Clipo.Application.UseCases.GetVideosByUser;
-using Clipo.Presentation.Controller.VideoConverter;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clipo.Api.Controllers.VideoConverter.GetVideosByUser
 {
-    [ApiController]
+	[Authorize]
+	[ApiController]
     [Route("video")]
     public sealed class GetVideosByUserController : ControllerBase
     {
@@ -17,7 +18,7 @@ namespace Clipo.Api.Controllers.VideoConverter.GetVideosByUser
         /// Lista todos os vídeos de um usuário específico.
         /// </summary>
         /// <remarks>
-        /// Este endpoint retorna todos os vídeos associados ao usuário especificado pelo GUID.
+        /// Este endpoint retorna todos os vídeos associados ao usuário especificado no token.
         ///
         /// <b>Retornos possíveis:</b>
         /// - <b>200 OK</b>: Retorna a lista de vídeos do usuário.
@@ -25,21 +26,22 @@ namespace Clipo.Api.Controllers.VideoConverter.GetVideosByUser
         /// - <b>404 Not Found</b>: Nenhum vídeo encontrado para o usuário.
         /// - <b>500 Internal Server Error</b>: Falha inesperada no servidor.
         /// </remarks>
-        /// <param name="userId">GUID do usuário para buscar os vídeos.</param>
         /// <param name="ct">Token de cancelamento para a operação assíncrona.</param>
         /// <returns>Lista de vídeos do usuário.</returns>
-        [HttpGet("user/{userId}")]
+        [HttpGet("user")]
         [ProducesResponseType(typeof(List<GetVideosByUserOutput>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetVideosByUserAsync(Guid userId, CancellationToken ct)
+        public async Task<IActionResult> GetVideosByUserAsync(CancellationToken ct)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-                GetVideosByUserInput input = new(userId);
+				var userId = User.FindFirst("userId")?.Value;
+                if (userId == null) return Unauthorized();
+				GetVideosByUserInput input = new(Guid.Parse(userId));
                 var result = await _useCase.ExecuteAsync(input, ct);
 
                 if (result == null || !result.Any())

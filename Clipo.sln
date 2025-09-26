@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36203.30 d17.14
+VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Domain", "Clipo\Clipo.Domain\Clipo.Domain.csproj", "{F64F1F09-399C-41B7-BFFC-0E27FC30A820}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Presentation", "Clipo\Clipo.Presentation\Clipo.Presentation.csproj", "{AC7A58E3-A290-4338-B414-BC46388961E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Api", "Clipo\Clipo.Api\Clipo.Api.csproj", "{4418755E-A33A-4293-9DB3-BDBD23BD8117}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clipo.Tests", "Clipo\Clipo.Tests\Clipo.Tests.csproj", "{269C21B4-55F1-459F-AE42-E916F82BBAF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4418755E-A33A-4293-9DB3-BDBD23BD8117}.Release|Any CPU.Build.0 = Release|Any CPU
+		{269C21B4-55F1-459F-AE42-E916F82BBAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{269C21B4-55F1-459F-AE42-E916F82BBAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{269C21B4-55F1-459F-AE42-E916F82BBAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{269C21B4-55F1-459F-AE42-E916F82BBAF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
