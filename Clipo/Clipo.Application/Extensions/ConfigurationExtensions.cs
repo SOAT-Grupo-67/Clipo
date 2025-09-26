@@ -69,6 +69,10 @@ namespace Clipo.Application.Extensions
             IConfigurationSection authSection = cfg.GetSection("Auth");
 
             string secret = authSection["Secret"] ?? throw new InvalidOperationException("Auth:Secret não configurado!");
+            if(Encoding.UTF8.GetByteCount(secret) < 16)
+            {
+                throw new InvalidOperationException("Auth:Secret muito curta.");
+            }
 
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -80,7 +84,8 @@ namespace Clipo.Application.Extensions
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+						ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
                     };
                 });
 
