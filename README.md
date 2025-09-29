@@ -102,6 +102,36 @@ O serviço segue princípios de **Clean Architecture** e **Domain-Driven Design 
 
 ---
 
+## 📧 Envio de E-mails
+
+O sistema possui suporte para **envio de notificações por e-mail** em caso de falhas no processamento dos vídeos.  
+
+A configuração deve ser feita no arquivo `appsettings.json`, conforme o exemplo abaixo:
+
+```json
+"EmailSettings": {
+  "SmtpServer": "smtp.gmail.com",
+  "Port": 587,
+  "User": "yourapp@gmail.com",
+  "Password": "your-app-password"
+}
+```
+
+---
+
+🔑 Detalhes:
+User → E-mail responsável pelo envio (ex.: uma conta técnica da aplicação).
+
+Password → Senha ou App Password (no caso do Gmail é necessário gerar uma senha de app).
+
+SmtpServer → Servidor SMTP usado para envio (ex.: Gmail, Outlook, Amazon SES).
+
+Port → Porta de envio (587 para TLS).
+
+Caso um job falhe, o sistema tenta identificar o e-mail do usuário (a partir do token JWT) e envia uma mensagem de erro com detalhes do processamento.
+
+---
+
 ## ❓ Por que Hangfire e não RabbitMQ/Kafka/etc.?
 
 Optamos por utilizar o **Hangfire** como mecanismo de enfileiramento e execução assíncrona de jobs, em vez de soluções de mensageria tradicionais como **RabbitMQ, Kafka ou SQS**, pelos seguintes motivos:  
@@ -113,19 +143,6 @@ Optamos por utilizar o **Hangfire** como mecanismo de enfileiramento e execuçã
 - Integra-se facilmente ao **.NET**, com uma curva de aprendizado menor que a de mensagerias robustas como Kafka.  
 
 Em resumo: enquanto RabbitMQ/Kafka seriam indicados em cenários de **mensageria distribuída em larga escala**, o **Hangfire** atende perfeitamente à necessidade do projeto, oferecendo **execução assíncrona confiável, com persistência, reprocessamento e monitoramento integrado**, sem exigir uma infraestrutura adicional.  
-
----
-
-## 📈 Escalabilidade
-
-O sistema foi projetado para ser **escalável horizontalmente**, garantindo maior capacidade de processamento de vídeos conforme a demanda cresce. Alguns pontos importantes:  
-
-- **Múltiplos Workers Hangfire**: é possível adicionar novas instâncias do serviço, todas consumindo da mesma fila de jobs armazenada no banco. Assim, vários vídeos podem ser processados em paralelo.  
-- **Armazenamento em S3**: elimina a dependência de disco local, permitindo que múltiplas instâncias compartilhem os resultados.  
-- **Containerização (Docker/Kubernetes)**: a aplicação pode ser orquestrada em Kubernetes, escalando automaticamente de acordo com métricas de uso de CPU/memória ou quantidade de jobs pendentes.  
-- **Sharding de dados**: em cenários de altíssimo volume, a base de dados usada pelo Hangfire pode ser particionada, distribuindo os jobs em múltiplas filas.  
-
-Essa estratégia garante que o sistema possa começar **enxuto e simples**, mas esteja pronto para **crescer de forma distribuída e resiliente** no futuro.  
 
 ---
 
