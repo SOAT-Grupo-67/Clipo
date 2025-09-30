@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackathon-clipo-api
+  labels:
+    app: hackathon-clipo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackathon-clipo-api
+  template:
+    metadata:
+      labels:
+        app: hackathon-clipo-api
+    spec:
+      containers:
+        - name: clipo-api
+          image: limalucas99/hackathon-clipo
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: Database__Host
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: DB_HOST
+            - name: Database__Name
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: DB_NAME
+            - name: Database__User
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: DB_USER
+            - name: Database__Password
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: DB_PASSWORD
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
