@@ -42,6 +42,61 @@ spec:
                 secretKeyRef:
                   name: clipo-secrets
                   key: DB_PASSWORD
+            - name: Auth__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: Auth__Secret
+            - name: EmailSettings__SmtpServer
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: EmailSettings__SmtpServer
+            - name: EmailSettings__Port
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: EmailSettings__Port
+            - name: EmailSettings__User
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: EmailSettings__User
+            - name: EmailSettings__Password
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: EmailSettings__Password
+            - name: AWS__Region
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__Region
+            - name: AWS__AccessKeyId
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__AccessKeyId
+            - name: AWS__SecretAccessKey
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__SecretAccessKey
+            - name: AWS__SessionToken
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__SessionToken
+            - name: AWS__S3__BucketName
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__S3__BucketName
+            - name: AWS__UploadEnabled
+              valueFrom:
+                secretKeyRef:
+                  name: clipo-secrets
+                  key: AWS__UploadEnabled
           resources:
             requests:
               cpu: "100m"
