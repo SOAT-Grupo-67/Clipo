@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -14,25 +15,22 @@ namespace Clipo.Infrastructure.Migrations
             migrationBuilder.EnsureSchema(
                 name: "videoStatus");
 
-            migrationBuilder.CreateSequence(
-                name: "global_id_seq",
-                schema: "videoStatus",
-                incrementBy: 10);
-
             migrationBuilder.CreateTable(
                 name: "video-status",
                 schema: "videoStatus",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false, defaultValueSql: "nextval('customer.global_id_seq')"),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     FileName = table.Column<string>(type: "text", nullable: false),
                     FilePath = table.Column<string>(type: "text", nullable: false),
                     ZipPath = table.Column<string>(type: "text", nullable: true),
-                    ProcessStatus = table.Column<int>(type: "integer", nullable: false),
+                    S3Url = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     Progress = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,10 +43,6 @@ namespace Clipo.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "video-status",
-                schema: "videoStatus");
-
-            migrationBuilder.DropSequence(
-                name: "global_id_seq",
                 schema: "videoStatus");
         }
     }

@@ -5,7 +5,7 @@ namespace Clipo.Domain.AggregatesModel.VideoAggregate
 {
     public class VideoStatus : BaseModel
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public string FileName { get; set; } = default!;
         public string FilePath { get; set; } = default!;
         public string? ZipPath { get; set; }

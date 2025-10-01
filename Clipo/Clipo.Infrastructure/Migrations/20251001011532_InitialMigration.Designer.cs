@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Clipo.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20250827200626_InitialMigration")]
+    [Migration("20251001011532_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -26,15 +26,13 @@ namespace Clipo.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.HasSequence("global_id_seq")
-                .IncrementsBy(10);
-
             modelBuilder.Entity("Clipo.Domain.AggregatesModel.VideoAggregate.VideoStatus", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValueSql("nextval('customer.global_id_seq')");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -47,17 +45,20 @@ namespace Clipo.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ProcessStatus")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Progress")
                         .HasColumnType("integer");
+
+                    b.Property<string>("S3Url")
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ZipPath")
                         .HasColumnType("text");

@@ -26,7 +26,7 @@ namespace Clipo.Infrastructure.Repository
             {
                 _logger.LogInformation("Fetching {Entity} with id {Id}", typeof(T).Name, id);
                 T? entity = await _set.AsNoTracking()
-                                 .FirstOrDefaultAsync(e => e.Id == id && e.Status != Domain.Enums.Status.Inactive, ct);
+                                 .FirstOrDefaultAsync(e => e.Id == id, ct);
 
                 return entity;
             }
@@ -104,7 +104,7 @@ namespace Clipo.Infrastructure.Repository
             {
                 _logger.LogInformation("Updating {Entity} with id {Id}", typeof(T).Name, entity.Id);
 
-                T? tracked = await _set.FirstOrDefaultAsync(e => e.Id == entity.Id && e.Status != 0, ct);
+                T? tracked = await _set.FirstOrDefaultAsync(e => e.Id == entity.Id, ct);
                 if(tracked is null)
                 {
                     _logger.LogWarning("Entity id {Id} not found for update", entity.Id);

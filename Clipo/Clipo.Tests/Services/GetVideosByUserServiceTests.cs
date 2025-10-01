@@ -20,7 +20,7 @@ namespace Clipo.Tests.Services
             _mockRepository = new Mock<IVideoStatusRepository>();
             _mockOutputPort = new Mock<IGetVideosByUserOutputPort>();
             _mockLogger = new Mock<ILogger<GetVideosByUserInteractor>>();
-            
+
             _service = new GetVideosByUserInteractor(
                 _mockRepository.Object,
                 _mockOutputPort.Object,
@@ -31,8 +31,8 @@ namespace Clipo.Tests.Services
         [Fact]
         public async Task Handle_WithValidUserId_ShouldReturnVideos()
         {
-            var userId = Guid.NewGuid();
-            var videos = new List<VideoStatus>
+            int userId = new Random().Next(1, 999);
+            List<VideoStatus> videos = new List<VideoStatus>
             {
                 new VideoStatus
                 {
@@ -57,7 +57,7 @@ namespace Clipo.Tests.Services
         [Fact]
         public async Task Handle_WithNoVideosFound_ShouldCallNotFound()
         {
-            var userId = Guid.NewGuid();
+            int userId = new Random().Next(1, 999);
             _mockRepository.Setup(r => r.GetAllByUser(userId)).Returns(new List<VideoStatus>());
 
             await _service.Handle(new GetVideosByUserInput(userId), CancellationToken.None);
@@ -68,7 +68,7 @@ namespace Clipo.Tests.Services
         [Fact]
         public async Task Handle_WithRepositoryException_ShouldCallInvalid()
         {
-            var userId = Guid.NewGuid();
+            int userId = new Random().Next(1, 999);
             _mockRepository.Setup(r => r.GetAllByUser(userId)).Throws(new Exception("Database error"));
 
             await _service.Handle(new GetVideosByUserInput(userId), CancellationToken.None);

@@ -23,13 +23,13 @@ namespace Clipo.Application.UseCases.GetVideosByUser
         {
             try
             {
-                if (input.UserId == Guid.Empty)
+                if (input.UserId == 0)
                 {
                     _output.Invalid("O ID do usuário é inválido.");
                     return;
                 }
 
-                var videos = _videoRepository.GetAllByUser(input.UserId);
+                List<Domain.AggregatesModel.VideoAggregate.VideoStatus> videos = _videoRepository.GetAllByUser(input.UserId);
 
                 if (videos == null || !videos.Any())
                 {
@@ -37,7 +37,7 @@ namespace Clipo.Application.UseCases.GetVideosByUser
                     return;
                 }
 
-                var outputVideos = videos.Select(v => new GetVideosByUserOutput
+                List<GetVideosByUserOutput> outputVideos = videos.Select(v => new GetVideosByUserOutput
                 {
                     Id = v.Id,
                     UserId = v.UserId,

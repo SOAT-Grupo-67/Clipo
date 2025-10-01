@@ -41,18 +41,18 @@ namespace Clipo.Application.Extensions
                 options.UseNpgsql(connectionString, npgsql =>
                 {
                     npgsql.EnableRetryOnFailure(maxRetryCount: 5);
-                    if(!autoCreate)
+                    if (!autoCreate)
                     {
                         npgsql.MigrationsHistoryTable("__ef_migrations");
                     }
                 }));
 
-            using(ServiceProvider serviceProvider = services.BuildServiceProvider())
-            using(IServiceScope scope = serviceProvider.CreateScope())
+            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
+            using (IServiceScope scope = serviceProvider.CreateScope())
             {
                 ApplicationContext context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
 
-                if(autoCreate)
+                if (autoCreate)
                 {
                     context.Database.EnsureCreated();
                 }
@@ -64,40 +64,50 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration cfg)
         {
-            IConfigurationSection authSection = cfg.GetSection("Auth");
+            string secret = cfg.GetSection("Auth")["Secret"]
+                         ?? throw new InvalidOperationException("Auth:Secret não configurado!");
 
-            string secret = authSection["Secret"] ?? throw new InvalidOperationException("Auth:Secret não configurado!");
-            if(Encoding.UTF8.GetByteCount(secret) < 16)
-            {
-                throw new InvalidOperationException("Auth:Secret muito curta.");
-            }
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.RequireHttpsMetadata = true; // em dev você pode desligar
+                    options.SaveToken = true;
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-						ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+                        ClockSkew = TimeSpan.FromMinutes(5),
+
+                        IssuerSigningKey = key,
+                        ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+
+                        IssuerSigningKeyResolver = (token, securityToken, kid, parameters) => new[] { key }
                     };
                 });
 
             services.AddAuthorization();
-
             return services;
         }
 
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
-            string conn = cfg.GetConnectionString("HangfireConnection")
-                ?? throw new InvalidOperationException("Connection string 'HangfireConnection' not found.");
+            IConfigurationSection dbSection = cfg.GetSection("Database");
+            string host = dbSection["Host"] ?? "localhost";
+            string port = dbSection["Port"] ?? "5433";
+            string user = dbSection["User"] ?? "postgres";
+            string password = dbSection["Password"] ?? "postgres";
+            string dbName = dbSection["Name"] ?? "postgres";
+
+            string connStr = $"Host={host};Port={port};Database={dbName};Username={user};Password={password}";
 
             services.AddHangfire(config =>
             {
@@ -107,7 +117,7 @@ namespace Clipo.Application.Extensions
                     .UseRecommendedSerializerSettings()
                     .UsePostgreSqlStorage(opt =>
                     {
-                        opt.UseNpgsqlConnection(cfg.GetConnectionString("HangfireConnection")!);
+                        opt.UseNpgsqlConnection(connStr);
                     });
             });
 
@@ -115,6 +125,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddSwaggerDocs(this IServiceCollection services, IConfiguration cfg)
         {
             IConfigurationSection section = cfg.GetSection("Swagger");
@@ -135,11 +146,11 @@ namespace Clipo.Application.Extensions
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // <= minúsculo
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Enter: **Bearer {your JWT token}**"
+                    Description = "Informe apenas o JWT (sem o prefixo 'Bearer ')"
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -162,11 +173,11 @@ namespace Clipo.Application.Extensions
                     .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
                     .Distinct();
 
-                foreach(Assembly? assembly in assemblies)
+                foreach (Assembly? assembly in assemblies)
                 {
                     string xmlFile = $"{assembly.GetName().Name}.xml";
                     string xmlPath = Path.Combine(basePath, xmlFile);
-                    if(File.Exists(xmlPath))
+                    if (File.Exists(xmlPath))
                         options.IncludeXmlComments(xmlPath);
                 }
             });
@@ -180,6 +191,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
@@ -196,7 +208,6 @@ namespace Clipo.Application.Extensions
 
         public static IServiceCollection AddRefitClients(this IServiceCollection services, IConfiguration cfg)
         {
-
             return services;
         }
 
@@ -210,11 +221,11 @@ namespace Clipo.Application.Extensions
                 string? sessionToken = awsSection["SessionToken"];
                 string region = awsSection["Region"] ?? "us-east-1";
 
-                if(!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
+                if (!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
                 {
                     Amazon.Runtime.AWSCredentials awsCredentials;
 
-                    if(!string.IsNullOrEmpty(sessionToken))
+                    if (!string.IsNullOrEmpty(sessionToken))
                     {
                         awsCredentials = new Amazon.Runtime.SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
                     }
@@ -241,11 +252,9 @@ namespace Clipo.Application.Extensions
 
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
                 Console.WriteLine($"Erro ao configurar AWS S3: {ex.Message}");
-
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
 
@@ -270,6 +279,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddVideoConverterUseCases(this IServiceCollection s)
         {
             s.AddScoped<IConvertVideoToFrameInputPort, ConvertVideoToFrameInteractor>();
@@ -277,6 +287,7 @@ namespace Clipo.Application.Extensions
             s.AddScoped<IGetVideoStatusInputPort, GetVideoStatusInteractor>();
             return s;
         }
+
         internal sealed record SwaggerOptions
         {
             public string Title { get; set; } = "API";
