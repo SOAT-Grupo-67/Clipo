@@ -33,13 +33,15 @@ namespace Clipo.Api.Controllers.VideoConverter.ConvertVideoToFrame
         [ProducesResponseType(typeof(ConvertVideoToFrameOutput), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateAsync(IFormFile file, Guid userID, CancellationToken ct)
+        public async Task<IActionResult> CreateAsync(IFormFile file, CancellationToken ct)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-                ConvertVideoToFrameInput body = new ConvertVideoToFrameInput(file, userID);
+                string? userId = User.FindFirst("userId")?.Value;
+                if(userId == null) return Unauthorized();
+                ConvertVideoToFrameInput body = new ConvertVideoToFrameInput(file, int.Parse(userId));
                 ConvertVideoToFrameOutput? vm = await _useCase.ExecuteAsync(body, ct);
                 return Created(string.Empty, null);
             }

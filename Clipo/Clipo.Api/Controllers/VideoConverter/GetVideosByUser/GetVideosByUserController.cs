@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Clipo.Api.Controllers.VideoConverter.GetVideosByUser
 {
-	[Authorize]
-	[ApiController]
+    [Authorize]
+    [ApiController]
     [Route("video")]
     public sealed class GetVideosByUserController : ControllerBase
     {
@@ -29,33 +29,34 @@ namespace Clipo.Api.Controllers.VideoConverter.GetVideosByUser
         /// <param name="ct">Token de cancelamento para a operação assíncrona.</param>
         /// <returns>Lista de vídeos do usuário.</returns>
         [HttpGet("user")]
+        [Authorize]
         [ProducesResponseType(typeof(List<GetVideosByUserOutput>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetVideosByUserAsync(CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if(!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-				var userId = User.FindFirst("userId")?.Value;
-                if (userId == null) return Unauthorized();
-				GetVideosByUserInput input = new(Guid.Parse(userId));
-                var result = await _useCase.ExecuteAsync(input, ct);
+                string? userId = User.FindFirst("userId")?.Value;
+                if(userId == null) return Unauthorized();
+                GetVideosByUserInput input = new(int.Parse(userId));
+                List<GetVideosByUserOutput>? result = await _useCase.ExecuteAsync(input, ct);
 
-                if (result == null || !result.Any())
+                if(result == null || !result.Any())
                 {
                     return NotFound(new { Message = "Nenhum vídeo encontrado para este usuário." });
                 }
 
                 return Ok(result);
             }
-            catch (InvalidOperationException ex)
+            catch(InvalidOperationException ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
-            catch (Exception ex)
+            catch(Exception)
             {
                 return StatusCode(500, new { Message = "Erro interno do servidor." });
             }

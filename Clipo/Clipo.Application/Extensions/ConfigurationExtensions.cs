@@ -66,33 +66,37 @@ namespace Clipo.Application.Extensions
         }
         public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration cfg)
         {
-            IConfigurationSection authSection = cfg.GetSection("Auth");
+            string secret = cfg.GetSection("Auth")["Secret"]
+                         ?? throw new InvalidOperationException("Auth:Secret não configurado!");
 
-            string secret = authSection["Secret"] ?? throw new InvalidOperationException("Auth:Secret não configurado!");
-            if(Encoding.UTF8.GetByteCount(secret) < 16)
-            {
-                throw new InvalidOperationException("Auth:Secret muito curta.");
-            }
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.RequireHttpsMetadata = true; // em dev você pode desligar
+                    options.SaveToken = true;
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-						ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+                        ClockSkew = TimeSpan.FromMinutes(5),
+
+                        IssuerSigningKey = key,
+                        ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+
+                        IssuerSigningKeyResolver = (token, securityToken, kid, parameters) => new[] { key }
                     };
                 });
 
             services.AddAuthorization();
-
             return services;
         }
+
 
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
@@ -135,11 +139,11 @@ namespace Clipo.Application.Extensions
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",                 // <= minúsculo
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Enter: **Bearer {your JWT token}**"
+                    Description = "Informe apenas o JWT (sem o prefixo 'Bearer ')"
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
