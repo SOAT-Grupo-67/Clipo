@@ -23,7 +23,7 @@ namespace Clipo.Application.UseCases.GetVideosByUser
         {
             try
             {
-                if(input.UserId == 0)
+                if (input.UserId == 0)
                 {
                     _output.Invalid("O ID do usuário é inválido.");
                     return;
@@ -31,7 +31,7 @@ namespace Clipo.Application.UseCases.GetVideosByUser
 
                 List<Domain.AggregatesModel.VideoAggregate.VideoStatus> videos = _videoRepository.GetAllByUser(input.UserId);
 
-                if(videos == null || !videos.Any())
+                if (videos == null || !videos.Any())
                 {
                     _output.NotFound();
                     return;
@@ -53,7 +53,7 @@ namespace Clipo.Application.UseCases.GetVideosByUser
 
                 _output.Success(outputVideos);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao buscar vídeos do usuário {UserId}", input.UserId);
                 _output.Invalid("Erro interno do servidor ao buscar vídeos.");

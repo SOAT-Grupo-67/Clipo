@@ -42,6 +42,7 @@ namespace Clipo.Api.Controllers.VideoConverter.ConvertVideoToFrame
                 string? userId = User.FindFirst("userId")?.Value;
                 if(userId == null) return Unauthorized();
                 ConvertVideoToFrameInput body = new ConvertVideoToFrameInput(file, int.Parse(userId));
+
                 ConvertVideoToFrameOutput? vm = await _useCase.ExecuteAsync(body, ct);
                 return Created(string.Empty, null);
             }

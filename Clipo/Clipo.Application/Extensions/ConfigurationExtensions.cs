@@ -41,18 +41,18 @@ namespace Clipo.Application.Extensions
                 options.UseNpgsql(connectionString, npgsql =>
                 {
                     npgsql.EnableRetryOnFailure(maxRetryCount: 5);
-                    if(!autoCreate)
+                    if (!autoCreate)
                     {
                         npgsql.MigrationsHistoryTable("__ef_migrations");
                     }
                 }));
 
-            using(ServiceProvider serviceProvider = services.BuildServiceProvider())
-            using(IServiceScope scope = serviceProvider.CreateScope())
+            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
+            using (IServiceScope scope = serviceProvider.CreateScope())
             {
                 ApplicationContext context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
 
-                if(autoCreate)
+                if (autoCreate)
                 {
                     context.Database.EnsureCreated();
                 }
@@ -64,6 +64,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration cfg)
         {
             string secret = cfg.GetSection("Auth")["Secret"]
@@ -97,10 +98,8 @@ namespace Clipo.Application.Extensions
             return services;
         }
 
-
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
-
             IConfigurationSection dbSection = cfg.GetSection("Database");
             string host = dbSection["Host"] ?? "localhost";
             string port = dbSection["Port"] ?? "5433";
@@ -126,6 +125,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddSwaggerDocs(this IServiceCollection services, IConfiguration cfg)
         {
             IConfigurationSection section = cfg.GetSection("Swagger");
@@ -147,7 +147,7 @@ namespace Clipo.Application.Extensions
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",                 // <= minúsculo
+                    Scheme = "bearer", // <= minúsculo
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
                     Description = "Informe apenas o JWT (sem o prefixo 'Bearer ')"
@@ -173,11 +173,11 @@ namespace Clipo.Application.Extensions
                     .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
                     .Distinct();
 
-                foreach(Assembly? assembly in assemblies)
+                foreach (Assembly? assembly in assemblies)
                 {
                     string xmlFile = $"{assembly.GetName().Name}.xml";
                     string xmlPath = Path.Combine(basePath, xmlFile);
-                    if(File.Exists(xmlPath))
+                    if (File.Exists(xmlPath))
                         options.IncludeXmlComments(xmlPath);
                 }
             });
@@ -191,6 +191,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
@@ -207,7 +208,6 @@ namespace Clipo.Application.Extensions
 
         public static IServiceCollection AddRefitClients(this IServiceCollection services, IConfiguration cfg)
         {
-
             return services;
         }
 
@@ -221,11 +221,11 @@ namespace Clipo.Application.Extensions
                 string? sessionToken = awsSection["SessionToken"];
                 string region = awsSection["Region"] ?? "us-east-1";
 
-                if(!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
+                if (!string.IsNullOrEmpty(accessKeyId) && !string.IsNullOrEmpty(secretAccessKey))
                 {
                     Amazon.Runtime.AWSCredentials awsCredentials;
 
-                    if(!string.IsNullOrEmpty(sessionToken))
+                    if (!string.IsNullOrEmpty(sessionToken))
                     {
                         awsCredentials = new Amazon.Runtime.SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
                     }
@@ -252,11 +252,9 @@ namespace Clipo.Application.Extensions
 
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
                 Console.WriteLine($"Erro ao configurar AWS S3: {ex.Message}");
-
                 services.AddScoped<IS3StorageService, S3StorageService>();
             }
 
@@ -281,6 +279,7 @@ namespace Clipo.Application.Extensions
 
             return services;
         }
+
         public static IServiceCollection AddVideoConverterUseCases(this IServiceCollection s)
         {
             s.AddScoped<IConvertVideoToFrameInputPort, ConvertVideoToFrameInteractor>();
@@ -288,6 +287,7 @@ namespace Clipo.Application.Extensions
             s.AddScoped<IGetVideoStatusInputPort, GetVideoStatusInteractor>();
             return s;
         }
+
         internal sealed record SwaggerOptions
         {
             public string Title { get; set; } = "API";
