@@ -57,7 +57,7 @@ namespace Clipo.Application.Services.VideoConverter
 
                 double duration = analysis.Duration.TotalSeconds;
 
-                int fps = 1;
+                double fps = 0.5;
                 int totalFrames = (int)Math.Ceiling(duration * fps);
 
                 string framesDir = Path.Combine("frames", video.Id.ToString());
