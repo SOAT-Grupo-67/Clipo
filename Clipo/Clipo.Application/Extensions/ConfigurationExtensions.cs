@@ -100,8 +100,15 @@ namespace Clipo.Application.Extensions
 
         public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration cfg)
         {
-            string conn = cfg.GetConnectionString("HangfireConnection")
-                ?? throw new InvalidOperationException("Connection string 'HangfireConnection' not found.");
+
+            IConfigurationSection dbSection = cfg.GetSection("Database");
+            string host = dbSection["Host"] ?? "localhost";
+            string port = dbSection["Port"] ?? "5433";
+            string user = dbSection["User"] ?? "postgres";
+            string password = dbSection["Password"] ?? "postgres";
+            string dbName = dbSection["Name"] ?? "postgres";
+
+            string connStr = $"Host={host};Port={port};Database={dbName};Username={user};Password={password}";
 
             services.AddHangfire(config =>
             {
@@ -111,7 +118,7 @@ namespace Clipo.Application.Extensions
                     .UseRecommendedSerializerSettings()
                     .UsePostgreSqlStorage(opt =>
                     {
-                        opt.UseNpgsqlConnection(cfg.GetConnectionString("HangfireConnection")!);
+                        opt.UseNpgsqlConnection(connStr);
                     });
             });
 
